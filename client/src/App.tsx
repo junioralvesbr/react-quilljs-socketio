@@ -1,5 +1,6 @@
-import { useCallback } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Quill from "quill"
+import { io, Socket } from 'socket.io-client'
 
 import "quill/dist/quill.snow.css";
 import './App.css'
@@ -20,6 +21,9 @@ const toolBarsOptions = [
 ]
 
 function App() {
+  const [socket, setSocket] = useState<Socket | undefined>()
+  const [quill, setQuill] = useState<Quill | undefined>()
+
   const wrapperRef = useCallback((wrapper: HTMLDivElement) => {
     if (wrapper == null) return
 
@@ -27,10 +31,46 @@ function App() {
     const editor = document.createElement("div")
     wrapper.append(editor)
 
-    new Quill(editor, { theme: 'snow', modules: { toolbar: toolBarsOptions } })
+    const quill = new Quill(editor, { theme: 'snow', modules: { toolbar: toolBarsOptions } })
+
+    setQuill(quill)
 
   }, [])
 
+  useEffect(() => {
+    const socketServer = io('http://localhost:3000')
+    setSocket(socketServer)
+
+    return () => { socketServer.disconnect() }
+
+  }, [])
+
+  useEffect(() => {
+    if (socket == null || quill == null) return
+
+    const handleQuillOn = (delta, oldDelta, source) => {
+      if (source !== 'user') return
+
+      socket?.emit('send-changes', delta)
+    }
+
+    quill?.on('text-change', handleQuillOn)
+
+    return () => { quill?.off('text-change', handleQuillOn) }
+
+  }, [quill, socket])
+
+  useEffect(() => {
+    if (socket == null || quill == null) return
+
+    const handleReceiveChanges = (delta) => {
+      quill.updateContents(delta)
+    }
+
+    socket.on("receive-changes", handleReceiveChanges)
+
+    return () => { socket?.off("receive-changes", handleReceiveChanges) }
+  }, [socket, quill])
 
   return (
     <div className="container" ref={wrapperRef}></div>
