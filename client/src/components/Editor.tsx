@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import Quill from "quill"
 import { io, Socket } from 'socket.io-client'
+import { useParams } from "react-router"
 
 import { toolBarsOptions } from '../config/quill-config'
 
@@ -8,8 +9,21 @@ import "quill/dist/quill.snow.css";
 import './styles.css'
 
 export default function Editor() {
+    const { id: documentId } = useParams()
     const [socket, setSocket] = useState<Socket | undefined>()
     const [quill, setQuill] = useState<Quill | undefined>()
+
+    useEffect(() => {
+        if (socket == null || quill == null) return
+
+        socket.once("load-document", document => {
+            quill.setContents(document)
+            quill.enable()
+        })
+
+        socket.emit('get-document', documentId)
+
+    }, [socket, quill, documentId])
 
     const wrapperRef = useCallback((wrapper: HTMLDivElement) => {
         if (wrapper == null) return
@@ -19,7 +33,8 @@ export default function Editor() {
         wrapper.append(editor)
 
         const quill = new Quill(editor, { theme: 'snow', modules: { toolbar: toolBarsOptions } })
-
+        quill.disable()
+        quill.setText('Loadding...')
         setQuill(quill)
 
     }, [])
