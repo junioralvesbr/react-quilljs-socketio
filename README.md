@@ -1,5 +1,5 @@
-# 🚀 Google Docs
-#
+# 🚀 Text-Editor
+
 ![Alt Text](/imagem.png)
 
 ![HTML](https://img.shields.io/badge/HTML-HTML5-orange) ![CSS](https://img.shields.io/badge/STYLE-CSS3-blue) ![Javascript](https://img.shields.io/badge/JavaScript-JS-yellow) ![React](https://img.shields.io/badge/React-JS-%2361dafb) ![Socketio](https://img.shields.io/badge/socket-IO-green) ![Quilljs](https://img.shields.io/badge/Quill-JS-yellow)
